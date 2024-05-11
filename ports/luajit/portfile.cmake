@@ -18,6 +18,13 @@ vcpkg_from_github(
 vcpkg_cmake_get_vars(cmake_vars_file)
 include("${cmake_vars_file}")
 
+set(OLD_VCPKG_LIBRARY_LINKAGE "${VCPKG_LIBRARY_LINKAGE}")
+if (VCPKG_LIBRARY_LINKAGE STREQUAL "static")
+    # luajit must be dynamiclly linked in order to load Lua/C module at runtime
+    # See https://luajit.org/install.html
+    set(VCPKG_LIBRARY_LINKAGE "dynamic")
+endif()
+
 if(VCPKG_DETECTED_MSVC)
     # Due to lack of better MSVC cross-build support, just always build the host
     # minilua tool with the target toolchain. This will work for native builds and
@@ -92,6 +99,8 @@ else()
             "TARGET_STRIP=${VCPKG_DETECTED_CMAKE_STRIP}${strip_options}"
     )
 endif()
+
+set(VCPKG_LIBRARY_LINKAGE "${OLD_VCPKG_LIBRARY_LINKAGE}")
 
 file(REMOVE_RECURSE
     "${CURRENT_PACKAGES_DIR}/debug/include"
